@@ -1,0 +1,11 @@
+{% if latest_question_list %}
+    <ul>
+    {% for question in latest_question_list %}
+        {# this url 'polls:detail' will return "/polls/", because it search for the url of name="detail" inside app_name = 'polls' of file urls.py #}
+        {# format: app_name.path_name #}
+        <li><a href="{% url 'polls:detail' question.id %}">{{ question.question_text }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No polls are available.</p>
+{% endif %}

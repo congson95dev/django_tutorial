@@ -1,0 +1,15 @@
+<form action="{% url 'polls:vote' question.id %}" method="post">
+{% csrf_token %}
+<fieldset>
+    <legend><h1>{{ question.question_text }}</h1></legend>
+    {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+    {# question.choice_set will get all choice from the question and use it as set #}
+    {% for choice in question.choice_set.all %}
+        {# forloop.counter indicates how many times the "for" tag has gone through its loop #}
+        {# so it will render id="choice1" when "for" tag run 1 time, id="choice2" when "for" tag run 2 time and so on #}
+        <input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}">
+        <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label><br>
+    {% endfor %}
+</fieldset>
+<input type="submit" value="Vote">
+</form>
