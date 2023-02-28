@@ -1,4 +1,5 @@
 from django.contrib.contenttypes.models import ContentType
+from django.db import transaction, connection
 from django.db.models import Q, F, Count, Max, Min, Avg, Sum, Value, Func, ExpressionWrapper, DecimalField
 from django.http import HttpResponse
 from django.shortcuts import render
@@ -7,7 +8,7 @@ from store.models import Product, OrderItem, Order, Category, Customer
 from tags.models import TaggedItem
 
 
-def learn_query(request):
+def learn_get_query(request):
     """
     Filter
 
@@ -222,6 +223,8 @@ def learn_query(request):
     # But if tags is called in other place as well,
     # then this 2nd way is gonna be better because it can help us to re-use the code
 
+    # for this 2nd way, please check code in tags/models.py
+
     queryset = TaggedItem.objects.get_tags_for(Product, 1)
 
     for taggeditem in queryset:
@@ -236,6 +239,63 @@ def learn_query(request):
 
     print(queryset)
     print(list_queryset)
+
+    return render(request, "index.html")
+
+
+def learn_create_update_delete_query(request):
+    """
+    Sample of create a record in "category" table
+    """
+    category = Category()
+    category.title = "New Cat"
+    category.featured_product = Product(pk=10)
+    # category.save()
+
+    """
+    Sample of update a record in "category" table
+    """
+    category = Category.objects.get(pk=14)
+    category.featured_product = Product(pk=11)
+    # category.save()
+
+    """
+    Sample of delete a record or multiple records in "category" table
+    """
+
+    # delete 1
+    category = Category.objects.get(pk=15)
+    # category.delete()
+
+    # delete multiple
+    category = Category.objects.filter(id__gt=15)
+    # category.delete()
+
+    """
+    Transaction
+    
+    With this, if anything happen, it will automatic rollback for us
+    """
+    with transaction.atomic():
+        order = Order()
+        order.customer = Customer(pk=1)
+        order.save()
+
+        order_item = OrderItem()
+        order_item.order = order
+        # there's no product with id = -1
+        # so in here, it will throw an error and transaction will rollback the previous create "order" action
+        order_item.product = Product(pk=-1)
+        order_item.quantity = 1
+        order_item.unit_price = 1
+        # order_item.save()
+
+    """
+    Raw SQL
+    """
+
+    with connection.cursor() as cursor:
+        cursor.execute('SELECT * FROM store_product')
 
     return render(request, "index.html")
 
